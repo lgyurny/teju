@@ -1,0 +1,23 @@
+{
+  "name": "telegram-grammy-bot",
+  "version": "1.0.0",
+  "description": "Un bot de Telegram modular y funcional construido usando grammY para Node.js y TypeScript.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "grammy": "^1.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3",
+    "tsx": "^4.19.2",
+    "vitest": "^3.0.5"
+  }
+}
