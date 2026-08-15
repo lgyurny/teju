@@ -1,41 +1,48 @@
 import { Composer } from "grammy";
-import { mainKeyboard } from "../keyboards/mainKeyboard.js";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { Command } from "../types/command.js";
 
 export const commandsComposer = new Composer();
+export const loadedCommands: Command[] = [];
 
-// Comando /start
-commandsComposer.command("start", async (ctx) => {
-  const name = ctx.from?.first_name ?? "Usuario";
-  await ctx.reply(
-    `¡Hola, ${name}! 👋\n\nBienvenido a este bot de Telegram creado con **grammY** y **Node.js**.\n\nEscribe /help para ver la lista de comandos disponibles.`
-  );
-});
+/**
+ * Carga de forma dinámica y descentralizada todos los comandos en el directorio `commands`.
+ */
+export async function loadCommands(): Promise<Command[]> {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
 
-// Comando /help
-commandsComposer.command("help", async (ctx) => {
-  await ctx.reply(
-    `📖 **Comandos disponibles:**\n\n` +
-      `/start - Inicia la conversación con el bot\n` +
-      `/help - Muestra este mensaje de ayuda\n` +
-      `/info - Información sobre la tecnología usada\n` +
-      `/keyboard - Muestra un menú de botones interactivos`
-  );
-});
+  const files = fs.readdirSync(__dirname);
 
-// Comando /info
-commandsComposer.command("info", async (ctx) => {
-  await ctx.reply(
-    `🤖 **Acerca de este bot:**\n\n` +
-      `• **Librería:** grammY (https://grammy.dev)\n` +
-      `• **Entorno:** Node.js + TypeScript\n` +
-      `• **Arquitectura:** Estructura modular con Composer\n` +
-      `• **Estado:** ¡Totalmente funcional! 🚀`
-  );
-});
+  for (const file of files) {
+    // Ignorar el index de registro y archivos que no sean .ts o .js (evitando .map o .d.ts)
+    if (
+      (file.endsWith(".ts") || file.endsWith(".js")) &&
+      !file.startsWith("index") &&
+      !file.endsWith(".d.ts")
+    ) {
+      const filePath = path.join(__dirname, file);
+      const fileUrl = pathToFileURL(filePath).href;
 
-// Comando /keyboard
-commandsComposer.command("keyboard", async (ctx) => {
-  await ctx.reply("Elige una opción del menú interactivo:", {
-    reply_markup: mainKeyboard,
-  });
-});
+      try {
+        const module = await import(fileUrl);
+        const command: Command = module.default || module.command;
+
+        if (command && command.name && typeof command.execute === "function") {
+          commandsComposer.command(command.name, command.execute);
+          loadedCommands.push(command);
+          console.log(`[COMANDO] Cargado dinámicamente: /${command.name}`);
+        }
+      } catch (error) {
+        console.error(`Error al cargar el comando desde ${file}:`, error);
+      }
+    }
+  }
+
+  return loadedCommands;
+}
+
+// Cargar automáticamente
+await loadCommands();

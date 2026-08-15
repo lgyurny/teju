@@ -1,6 +1,8 @@
-# 🤖 Telegram Bot con grammY y Node.js (TypeScript)
+# 🤖 Telegram Bot Descentralizado con grammY y Node.js (TypeScript)
 
-Este proyecto es un bot de Telegram completamente funcional, estructurado de forma modular utilizando la librería [grammY](https://grammy.dev) para Node.js y TypeScript.
+Este proyecto es un bot de Telegram completamente funcional y extensible, construido con la librería [grammY](https://grammy.dev) para Node.js y TypeScript.
+
+Sigue una **arquitectura de comandos descentralizada**, lo que significa que **puedes agregar nuevos comandos simplemente creando un archivo en el directorio `src/commands/`** sin necesidad de registrarlos manualmente en el código principal.
 
 ---
 
@@ -14,15 +16,22 @@ Este proyecto es un bot de Telegram completamente funcional, estructurado de for
 
 ## 📁 Estructura del Proyecto
 
-El código está organizado de manera modular para garantizar escalabilidad y fácil mantenimiento:
-
 ```
 ├── src/
-│   ├── commands/        # Comandos del bot (/start, /help, /info, /keyboard)
-│   ├── handlers/        # Manejadores de eventos (callback queries y mensajes de texto)
+│   ├── commands/        # Comandos del bot autocargables y descentralizados
+│   │   ├── index.ts     # Cargador dinámico de comandos (fs.readdir + import)
+│   │   ├── start.ts     # Comando /start
+│   │   ├── help.ts      # Comando /help
+│   │   ├── info.ts      # Comando /info
+│   │   ├── keyboard.ts  # Comando /keyboard
+│   │   ├── echo.ts      # Comando /echo (repite mensajes)
+│   │   ├── dice.ts      # Comando /dice (juegos de azar de Telegram)
+│   │   └── weather.ts   # Comando /weather (clima para ciudades)
+│   ├── handlers/        # Manejadores de eventos (callback queries y mensajes)
 │   ├── keyboards/       # Definición de teclados inline e interactivos
+│   ├── types/           # Definiciones e interfaces de TypeScript (Command)
 │   ├── __tests__/       # Pruebas unitarias
-│   ├── bot.ts           # Configuración del bot y registro de módulos
+│   ├── bot.ts           # Configuración principal del bot
 │   └── index.ts         # Punto de entrada de la aplicación
 ├── .env.example         # Plantilla para variables de entorno
 ├── tsconfig.json        # Configuración de TypeScript (ES Modules)
@@ -31,9 +40,44 @@ El código está organizado de manera modular para garantizar escalabilidad y f�
 
 ---
 
+## ⚡ ¿Cómo agregar un nuevo comando? (Descentralizado)
+
+Gracias al cargador dinámico, para añadir un nuevo comando al bot solo debes crear un archivo en `src/commands/` exportando por defecto un objeto que implemente la interfaz `Command`:
+
+```typescript
+// src/commands/saludo.ts
+import { Command } from "../types/command.js";
+
+const saludoCommand: Command = {
+  name: "saludo",
+  description: "Envía un saludo personalizado",
+  execute: async (ctx) => {
+    await ctx.reply("¡Hola! Este comando se cargó automáticamente 🚀");
+  },
+};
+
+export default saludoCommand;
+```
+
+¡Y listo! Al reiniciar o iniciar el bot, el comando `/saludo` estará automáticamente disponible.
+
+---
+
+## 🎮 Comandos Incluidos
+
+- `/start`: Saludo de bienvenida interactivo.
+- `/help`: Muestra dinámicamente todos los comandos registrados.
+- `/info`: Información técnica del bot.
+- `/keyboard`: Menú interactivo con botones inline.
+- `/echo <mensaje>`: Repite el mensaje introducido con formato en negrita e itálica.
+- `/dice [target|basket|futbol|slots]`: Lanza un juego de azar o dado animado de Telegram.
+- `/weather <ciudad>`: Muestra el pronóstico meteorológico detallado para la ciudad indicada.
+
+---
+
 ## 🚀 Instalación y Configuración
 
-1. **Clonar el repositorio e instalar dependencias:**
+1. **Instalar dependencias:**
 
    ```bash
    npm install
@@ -41,29 +85,27 @@ El código está organizado de manera modular para garantizar escalabilidad y f�
 
 2. **Configurar las variables de entorno:**
 
-   Copia el archivo `.env.example` a un nuevo archivo `.env`:
+   Copia `.env.example` a `.env` y coloca tu token:
 
    ```bash
    cp .env.example .env
    ```
 
-   Edita el archivo `.env` y coloca tu token de Telegram:
-
    ```env
-   BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+   BOT_TOKEN=tu_token_aqui
    ```
 
 ---
 
 ## ⚙️ Scripts Disponibles
 
-- **Modo Desarrollo (con auto-reload):**
+- **Modo Desarrollo:**
 
   ```bash
   npm run dev
   ```
 
-- **Compilar TypeScript:**
+- **Compilar Proyecto:**
 
   ```bash
   npm run build
@@ -80,13 +122,3 @@ El código está organizado de manera modular para garantizar escalabilidad y f�
   ```bash
   npm test
   ```
-
----
-
-## 🎮 Comandos y Funcionalidades del Bot
-
-- `/start`: Saludo de bienvenida personalizado.
-- `/help`: Muestra la lista de comandos disponibles.
-- `/info`: Información técnica sobre la stack utilizada.
-- `/keyboard`: Despliega un menú de botones interactivos inline con soporte para callbacks y enlaces externos.
-- **Mensaje por defecto:** Responde interactivamente a cualquier mensaje de texto.

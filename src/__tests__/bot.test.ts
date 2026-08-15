@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createBot } from "../bot.js";
 import { mainKeyboard } from "../keyboards/mainKeyboard.js";
+import { loadedCommands } from "../commands/index.js";
 import type { InlineKeyboardButton, UserFromGetMe } from "grammy/types";
 
 describe("Bot de Telegram (grammY)", () => {
@@ -21,6 +22,18 @@ describe("Bot de Telegram (grammY)", () => {
     supports_join_request_queries: false,
   };
 
+  it("debe cargar dinámicamente los comandos descentralizados", () => {
+    expect(loadedCommands.length).toBeGreaterThanOrEqual(7);
+    const commandNames = loadedCommands.map((c) => c.name);
+    expect(commandNames).toContain("start");
+    expect(commandNames).toContain("help");
+    expect(commandNames).toContain("info");
+    expect(commandNames).toContain("keyboard");
+    expect(commandNames).toContain("echo");
+    expect(commandNames).toContain("dice");
+    expect(commandNames).toContain("weather");
+  });
+
   it("debe crear la instancia del bot correctamente sin fallar", () => {
     const bot = createBot(dummyToken, { botInfo: dummyBotInfo });
     expect(bot).toBeDefined();
@@ -37,13 +50,11 @@ describe("Bot de Telegram (grammY)", () => {
     const btnInfo = inlineKeyboard[1][0] as InlineKeyboardButton.CallbackButton;
     const btnUrl = inlineKeyboard[1][1] as InlineKeyboardButton.UrlButton;
 
-    // Fila 1: Opción A y Opción B
     expect(btnA.text).toContain("Opción A");
     expect(btnA.callback_data).toBe("btn_a");
     expect(btnB.text).toContain("Opción B");
     expect(btnB.callback_data).toBe("btn_b");
 
-    // Fila 2: Información y URL
     expect(btnInfo.text).toContain("Información");
     expect(btnInfo.callback_data).toBe("btn_info");
     expect(btnUrl.text).toContain("Visitar grammY");
@@ -77,47 +88,67 @@ describe("Bot de Telegram (grammY)", () => {
     expect(repliedText).toContain("¡Hola, Juan!");
   });
 
-  it("debe procesar el comando /keyboard enviando el teclado inline", async () => {
+  it("debe procesar el comando /echo con parámetros", async () => {
     const bot = createBot(dummyToken, { botInfo: dummyBotInfo });
     let repliedText = "";
-    let replyMarkup: any = null;
-
     bot.api.config.use(async (prev, method, params) => {
       if (method === "sendMessage") {
         repliedText = (params as any).text;
-        replyMarkup = (params as any).reply_markup;
         return { ok: true, result: {} as any };
       }
       return prev(method, params);
     });
 
     const dummyCtx = {
-      update_id: 2,
+      update_id: 10,
       message: {
-        message_id: 2,
+        message_id: 10,
         date: Math.floor(Date.now() / 1000),
         chat: { id: 123, type: "private", first_name: "Juan" },
         from: { id: 123, is_bot: false, first_name: "Juan" },
-        text: "/keyboard",
-        entities: [{ type: "bot_command", offset: 0, length: 9 }],
+        text: "/echo Hola grammY",
+        entities: [{ type: "bot_command", offset: 0, length: 5 }],
       },
     };
 
     await bot.handleUpdate(dummyCtx as any);
-    expect(repliedText).toContain("Elige una opción del menú interactivo:");
-    expect(replyMarkup).toBeDefined();
+    expect(repliedText).toContain("Hola grammY");
   });
 
-  it("debe responder adecuadamente cuando se presiona un botón inline (callback query)", async () => {
+  it("debe procesar el comando /dice para enviar dados", async () => {
     const bot = createBot(dummyToken, { botInfo: dummyBotInfo });
-    let callbackAnswerText = "";
-    let repliedText = "";
-
+    let sentDice = false;
     bot.api.config.use(async (prev, method, params) => {
-      if (method === "answerCallbackQuery") {
-        callbackAnswerText = (params as any).text;
-        return { ok: true, result: true as any };
+      if (method === "sendDice") {
+        sentDice = true;
+        return { ok: true, result: {} as any };
       }
+      if (method === "sendMessage") {
+        return { ok: true, result: {} as any };
+      }
+      return prev(method, params);
+    });
+
+    const dummyCtx = {
+      update_id: 11,
+      message: {
+        message_id: 11,
+        date: Math.floor(Date.now() / 1000),
+        chat: { id: 123, type: "private", first_name: "Juan" },
+        from: { id: 123, is_bot: false, first_name: "Juan" },
+        text: "/dice target",
+        entities: [{ type: "bot_command", offset: 0, length: 5 }],
+      },
+    };
+
+    await bot.handleUpdate(dummyCtx as any);
+    expect(sentDice).toBe(true);
+  });
+
+  it("debe procesar el comando /weather para una ciudad", async () => {
+    const bot = createBot(dummyToken, { botInfo: dummyBotInfo });
+    let repliedText = "";
+    bot.api.config.use(async (prev, method, params) => {
       if (method === "sendMessage") {
         repliedText = (params as any).text;
         return { ok: true, result: {} as any };
@@ -126,24 +157,19 @@ describe("Bot de Telegram (grammY)", () => {
     });
 
     const dummyCtx = {
-      update_id: 3,
-      callback_query: {
-        id: "cq_123",
+      update_id: 12,
+      message: {
+        message_id: 12,
+        date: Math.floor(Date.now() / 1000),
+        chat: { id: 123, type: "private", first_name: "Juan" },
         from: { id: 123, is_bot: false, first_name: "Juan" },
-        chat_instance: "ci_123",
-        data: "btn_a",
-        message: {
-          message_id: 3,
-          date: Math.floor(Date.now() / 1000),
-          chat: { id: 123, type: "private", first_name: "Juan" },
-          text: "Elige una opción del menú interactivo:",
-        },
+        text: "/weather Madrid",
+        entities: [{ type: "bot_command", offset: 0, length: 8 }],
       },
     };
 
     await bot.handleUpdate(dummyCtx as any);
-    expect(callbackAnswerText).toBe("¡Elegiste la Opción A!");
-    expect(repliedText).toContain("Opción A");
+    expect(repliedText).toContain("Pronóstico del Clima en Madrid");
   });
 
   it("debe manejar mensajes de texto por defecto", async () => {
