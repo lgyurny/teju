@@ -10,7 +10,7 @@ export interface Command {
    */
   description: string;
   /**
-   * Función que ejecuta el comando
+   * Función que ejecuta el comando. Acepta el contexto de grammY para comandos.
    */
   execute: (ctx: CommandContext<Context>) => Promise<void>;
 }
