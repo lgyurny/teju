@@ -14,3 +14,5 @@ export interface Command {
    */
   execute: (ctx: Context) => Promise<void>;
 }
+
+export default Command;
