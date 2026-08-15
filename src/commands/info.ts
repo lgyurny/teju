@@ -1,4 +1,4 @@
-import { Command } from "../types/command.js";
+import type { Command } from "./index.js";
 
 export const infoCommand: Command = {
   name: "info",

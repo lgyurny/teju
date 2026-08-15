@@ -1,4 +1,4 @@
-import { Command } from "../types/command.js";
+import type { Command } from "./index.js";
 import { mainKeyboard } from "../keyboards/mainKeyboard.js";
 
 export const keyboardCommand: Command = {

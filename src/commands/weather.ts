@@ -1,4 +1,4 @@
-import { Command } from "../types/command.js";
+import type { Command } from "./index.js";
 
 export const weatherCommand: Command = {
   name: "weather",
@@ -14,10 +14,9 @@ export const weatherCommand: Command = {
       return;
     }
 
-    // Generación simulada de clima determinista basada en el nombre de la ciudad
     const charSum = city.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const temp = 10 + (charSum % 22); // Temperatura entre 10°C y 31°C
-    const humidity = 40 + (charSum % 50); // Humedad entre 40% y 89%
+    const temp = 10 + (charSum % 22);
+    const humidity = 40 + (charSum % 50);
 
     const climates = [
       { status: "Soleado", emoji: "☀️" },

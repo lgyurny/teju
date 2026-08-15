@@ -1,8 +1,22 @@
-import { Composer } from "grammy";
+import { Composer, Context } from "grammy";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { Command } from "../types/command.js";
+
+export interface Command {
+  /**
+   * Nombre del comando (sin la barra '/')
+   */
+  name: string;
+  /**
+   * Descripción del comando para ayuda o sugerencias
+   */
+  description: string;
+  /**
+   * Función que ejecuta el comando. Acepta el contexto estándar de grammY.
+   */
+  execute: (ctx: Context) => Promise<void>;
+}
 
 export const commandsComposer = new Composer();
 export const loadedCommands: Command[] = [];
@@ -17,7 +31,7 @@ export async function loadCommands(): Promise<Command[]> {
   const files = fs.readdirSync(__dirname);
 
   for (const file of files) {
-    // Ignorar el index de registro y archivos que no sean .ts o .js (evitando .map o .d.ts)
+    // Ignorar el archivo principal/index de registro y archivos que no sean .ts o .js
     if (
       (file.endsWith(".ts") || file.endsWith(".js")) &&
       !file.startsWith("index") &&

@@ -1,10 +1,9 @@
-import { Command } from "../types/command.js";
+import type { Command } from "./index.js";
 
 export const echoCommand: Command = {
   name: "echo",
   description: "Repite el texto introducido con formato especial",
   execute: async (ctx) => {
-    // Obtener el texto después de la palabra /echo
     const text = ctx.match;
 
     if (!text || typeof text !== "string" || text.trim() === "") {

@@ -19,7 +19,7 @@ Sigue una **arquitectura de comandos descentralizada**, lo que significa que **p
 ```
 ├── src/
 │   ├── commands/        # Comandos del bot autocargables y descentralizados
-│   │   ├── index.ts     # Cargador dinámico de comandos (fs.readdir + import)
+│   │   ├── index.ts     # Cargador dinámico de comandos e interfaz Command
 │   │   ├── start.ts     # Comando /start
 │   │   ├── help.ts      # Comando /help
 │   │   ├── info.ts      # Comando /info
@@ -29,7 +29,6 @@ Sigue una **arquitectura de comandos descentralizada**, lo que significa que **p
 │   │   └── weather.ts   # Comando /weather (clima para ciudades)
 │   ├── handlers/        # Manejadores de eventos (callback queries y mensajes)
 │   ├── keyboards/       # Definición de teclados inline e interactivos
-│   ├── types/           # Definiciones e interfaces de TypeScript (Command)
 │   ├── __tests__/       # Pruebas unitarias
 │   ├── bot.ts           # Configuración principal del bot
 │   └── index.ts         # Punto de entrada de la aplicación
@@ -46,7 +45,7 @@ Gracias al cargador dinámico, para añadir un nuevo comando al bot solo debes c
 
 ```typescript
 // src/commands/saludo.ts
-import { Command } from "../types/command.js";
+import type { Command } from "./index.js";
 
 const saludoCommand: Command = {
   name: "saludo",
