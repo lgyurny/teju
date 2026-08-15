@@ -1,4 +1,4 @@
-import { CommandContext, Context } from "grammy";
+import { Context } from "grammy";
 
 export interface Command {
   /**
@@ -10,7 +10,7 @@ export interface Command {
    */
   description: string;
   /**
-   * Función que ejecuta el comando. Acepta el contexto de grammY para comandos.
+   * Función que ejecuta el comando. Acepta el contexto estándar de grammY.
    */
-  execute: (ctx: CommandContext<Context>) => Promise<void>;
+  execute: (ctx: Context) => Promise<void>;
 }
